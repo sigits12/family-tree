@@ -17,7 +17,6 @@ class AnggotaControllerTests extends TestCase {
          			'*' => [
          				'nama',
          				'jenis_kelamin',
-         				'tingkat',
          				'id_orang_tua'
          			]
                  ]
@@ -30,7 +29,6 @@ class AnggotaControllerTests extends TestCase {
 		$payload = [
 		    'nama' 			=>  $this->faker->unique()->name($gender),
 		    'jenis_kelamin'	=>  $gender,
-		    'tingkat'     	=>  $this->faker->randomElement([0, 1, 2]),
 		    'id_orang_tua'	=>  "1"
 		];
 
@@ -41,7 +39,6 @@ class AnggotaControllerTests extends TestCase {
 					'data' => [
 						'nama',
 		 				'jenis_kelamin',
-		 				'tingkat',
 		 				'id_orang_tua'
 		 			]
 		 		]
@@ -55,7 +52,6 @@ class AnggotaControllerTests extends TestCase {
 	        [
 	            'nama' 			=>  $this->faker->unique()->name($gender),
 			    'jenis_kelamin'	=>  $gender,
-			    'tingkat'     	=>  $this->faker->randomElement(['0', '1', '2']),
 		    	'id_orang_tua'	=>  "1"
 	        ]
 	    );
@@ -68,7 +64,6 @@ class AnggotaControllerTests extends TestCase {
 	                    'id'			=> $anggota->id,
 	                    'nama' 			=> $anggota->nama,
 	                    'jenis_kelamin'	=> $anggota->jenis_kelamin,
-	                    'tingkat'      	=> $anggota->tingkat,
 	                    'id_orang_tua' 	=> $anggota->id_orang_tua
 	                ]
 	            ]
@@ -80,7 +75,6 @@ class AnggotaControllerTests extends TestCase {
 	    $payload = [
 		    'nama' 			=>  $this->faker->unique()->name($gender),
 		    'jenis_kelamin'	=>  $gender,
-		    'tingkat'     	=>  $this->faker->randomElement([0, 1, 2]),
 		    'id_orang_tua'	=>  "1"
 
 		];
@@ -97,14 +91,12 @@ class AnggotaControllerTests extends TestCase {
         	[
         		'nama' 			=>  $this->faker->unique()->name($gender),
 			    'jenis_kelamin'	=>  $gender,
-			    'tingkat'     	=>  $this->faker->randomElement([0, 1, 2]),
 			    'id_orang_tua'		=>  1
 	        ]
         );
         $payload = [
 		    'nama' 			=>  $this->faker->unique()->name($gender),
 		    'jenis_kelamin'	=>  $gender,
-		    'tingkat'     	=>  $this->faker->randomElement([0, 1, 2]),
 			'id_orang_tua'		=>  1
 		];
 	    $url = 'api/anggota/'.$anggota->id;
@@ -116,7 +108,6 @@ class AnggotaControllerTests extends TestCase {
 	                'id'			=> $anggota->id,
 	                'nama' 			=> $payload['nama'],
 	                'jenis_kelamin'	=> $payload['jenis_kelamin'],
-	                'tingkat'      	=> $payload['tingkat'],
 	                'id_orang_tua' 	=> $payload['id_orang_tua']
 	            ]
 	        ]

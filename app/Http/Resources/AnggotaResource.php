@@ -18,7 +18,6 @@ class AnggotaResource extends JsonResource
             'id'            => $this->id,
             'nama'          => $this->nama,
             'jenis_kelamin' => $this->jenis_kelamin,
-            'tingkat'       => $this->tingkat,
             'id_orang_tua'  => $this->id_orang_tua
         ];
     }

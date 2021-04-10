@@ -11,7 +11,6 @@ use App\Http\Resources\AnggotaResource;
 class AnggotaController extends Controller
 {
 
-
     public function index()
     {
         return $this->successResponse(
@@ -44,9 +43,13 @@ class AnggotaController extends Controller
     }
     
     public function destroy(Anggota $id)
-    {
-        $id->delete();
+    {   
+        if($id->children()->count() == 0) {
+            $id->delete();
+            return $this->deleteResponse();
+        } else {
+            return $this->errorResponse('Tidak bisa dihapus, mempunya anak', 401);
+        }
 
-        return $this->deleteResponse();
     }
 }

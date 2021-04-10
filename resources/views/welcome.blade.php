@@ -91,24 +91,35 @@
             text-decoration: none;
             cursor: pointer;
         }
+        /*modal end*/
     </style>
 </head>
 
 <body>
 
     <div class="content">
-        <h2>Family</h2>
+        <h2>Anggota Keluarga</h2>
         <button type="button" onclick="showModal(this)">Tambah</button>
         <br>
         <br>
+
+        <div class="wrapper">
+            <svg class="graph" id="tree-diagram" width="400" height="200" viewBox="0 0 400 240">
+                <g transform="translate(10,20)">
+                    <g class="links"></g>
+                    <g class="nodes"></g>
+                </g>
+            </svg>
+        </div>
+        <br>
+        <br>
+
         <table id="table-content">
             <thead>
                 <tr>
                     <th>Aksi</th>
                     <th>Nama</th>
                     <th>Jenis Kelamin</th>
-                    <th>Tingkat</th>
-                    <th>Orang Tua</th>
                 </tr>
             </thead>
             <tbody>
@@ -129,24 +140,18 @@
                     <label for="female">Wanita</label><br>
                     <br>
                     <label for="orang_tua">Orang Tua:</label><br>
-                    <select name="orang_tua" id="orang_tua_list">
-                       <option value="">Pilih Orang Tua</option>
+                    <select name="id_orang_tua" id="orang_tua_list">
                     </select>
                     <br>
                     <br>
 
-                    <label>Tingkat:</label><br>
-                    <input type="radio" id="anak" name="tingkat" value="1" checked>
-                    <label for="anak">Anak</label><br>
-                    <input type="radio" id="cucu" name="tingkat" value="2">
-                    <label for="cucu">Cucu</label><br>
-                    <br>
                     <input type="button" onclick="simpan()" value="Simpan">
                 </form>
             </div>
 
         </div>
     </div>
+    <script type="text/javascript" src="{{ asset('js/d3.js') }}"></script>
 </body>
 <script type="text/javascript">
 
@@ -165,45 +170,100 @@
         return `${url}`;
     }
 
+    function treeCreate(members) {
+        d3.select("#tree-diagram").select("svg").remove();
+
+        const idMapping = members.reduce((acc, el, i) => {
+            acc[el.id] = i;
+            return acc;
+        }, {});
+
+        let data;
+        members.forEach(el => {
+          if (!el.id_orang_tua) {
+            data = el;
+            return;
+          }
+          const parentEl = members[idMapping[el.id_orang_tua]];
+          parentEl.children = [...(parentEl.children || []), el];
+        });
+
+        let root = d3.hierarchy(data);
+
+        let treeLayout = d3.tree()
+        treeLayout.size([400,200]);
+        treeLayout(root);
+
+        let tree = d3.select('#tree-diagram g.nodes')
+
+        let treeNodes = tree.selectAll('g.node')
+          .data(root.descendants())
+          .enter()
+          .append('g')
+          .classed('node', true)
+          
+
+        treeNodes.append('circle')
+            .classed('the-node solid', true)
+            .attr('cx', d=> d.x)
+            .attr('cy', d=> d.y)
+            .attr('r', d => 20)
+            .attr("fill", function(d) { return (d.data.jenis_kelamin == "L" ? "blue" : "red"); });
+
+
+        treeNodes.append('text')
+          .attr('dx', d => d.x)
+          .attr('dy', d => d.y+4)
+          .text(d => d.data.nama)
+
+        let treeLinks = d3.select('#tree-diagram g.links')
+          .selectAll('line.link')
+          .data(root.links())
+          .enter()
+          .append('line')
+          .classed('link', true)
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y)
+          .style("stroke", "Black")
+
+    }
+
     function setOrangTuaList() {
         let selectElement = document.getElementById('orang_tua_list');
-
-        fetchMembers().then(members => {
-          members.data.map((member) => {
-            selectElement.add(new Option(member.nama, member.id));
-          });
+        selectElement.innerHTML = '';
+        fetchMembers(url).then(members => {
+            members.map((member) => {
+                selectElement.add(new Option(member.nama, member.id));
+            });
         });
     }
 
     function showModal(target) {
-        document.getElementById("myForm").reset();
-        setOrangTuaList();
+        document.getElementById("myForm").reset();        
         modal.style.display = "block";
+        setOrangTuaList()
         if (target.tagName !== "BUTTON") {
             getUrlSimpan = setUrlSimpan(target.getAttribute("id-member"));
-            fetch(`${url}/${target.getAttribute("id-member")}`).then(function (response) {
-                return response.json();
-            })
-                .then(function (data) {
-                    document.myForm.nama.value = data.data.nama;
-                    document.myForm.jenis_kelamin.value = data.data.jenis_kelamin;
-                    document.myForm.tingkat.value = data.data.tingkat;
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
+            fetchSingleMember(target.getAttribute("id-member")).then(member => {
+                setFormValue(member);
+            });
         }
     }
 
     function getFormValue() {
         return JSON.stringify({
-            nama: document.querySelector('[name="nama"]').value,
-            jenis_kelamin: document.querySelector('[name="jenis_kelamin"]').value,
-            tingkat: document.querySelector('[name="tingkat"]').value,
             nama: document.myForm.nama.value,
             jenis_kelamin: document.myForm.jenis_kelamin.value,
-            tingkat: document.myForm.tingkat.value
+            id_orang_tua: document.myForm.id_orang_tua.value,
         });
+    }
+
+    function setFormValue(member) {
+        document.myForm.nama.value = member.nama;
+        document.myForm.jenis_kelamin.value = member.jenis_kelamin;
+        document.myForm.id_orang_tua.value = member.id_orang_tua;
     }
 
     function simpan(body) {
@@ -256,72 +316,92 @@
             isConfirm = true;
         }
         if (isConfirm) {
-
             getUrlSimpan = setUrlSimpan(target.getAttribute("id-member"));
             fetch(getUrlSimpan, {
                 method: 'DELETE',
                 headers: {
                     'Content-type': 'application/json; charset=UTF-8'
                 }
-            }).then(function (data) {
+            }).then(function (response) {
+                if (response.ok) {
+                    return true;
+                } else {
+                    throw new Error('Tidak bisa menghapus, mempunyai anak');
+                }
+            })
+            .then((responseJson) => {
                 alert('Behasil Hapus');
                 loadPage();
             })
-                .catch(function (error) {
-                    console.log(error);
-                })
+            .catch((error) => {
+              alert(error)
+            });
         }
     }
-    function tableCreate(data) {
+
+    function tableCreate(members) {
         let table = document.getElementById('table-content').getElementsByTagName('tbody')[0];
         table.innerHTML = '';
-        for (var i = 0; i < data.length; i++) {
+        for (var i = 0; i < members.length; i++) {
             var tr = table.insertRow();
-            Object.keys(data[i]).map(item => {
-                var td = tr.insertCell();
-                if (item === 'id') {
-                    var a = document.createElement('a');
-                    var linkText = document.createTextNode('update');
-                    a.appendChild(linkText);
-                    a.setAttribute("id", "member");
-                    a.setAttribute("id-member", data[i][item]);
-                    a.setAttribute("action-name", 'update');
-                    a.setAttribute('onclick', 'showModal(this);')
-                    a.href = "#";
-                    td.appendChild(a);
+            Object.keys(members[i]).map(item => {
+                if (item != 'id_orang_tua') {
+                    var td = tr.insertCell();
+                    if (item === 'id') {
+                        var a = document.createElement('a');
+                        var linkText = document.createTextNode('update');
+                        a.appendChild(linkText);
+                        a.setAttribute("id", "member");
+                        a.setAttribute("id-member", members[i][item]);
+                        a.setAttribute("action-name", 'update');
+                        a.setAttribute('onclick', 'showModal(this);')
+                        a.href = "#";
+                        td.appendChild(a);
 
-                    td.appendChild(document.createTextNode('\u00A0'));
+                        td.appendChild(document.createTextNode('\u00A0'));
 
-                    var b = document.createElement('a');
-                    var linkText = document.createTextNode('delete');
-                    b.appendChild(linkText);
-                    b.setAttribute("id", "member");
-                    b.setAttribute("action-name", 'delete');
-                    b.setAttribute('onclick', 'deleteMember(this);')
-                    b.setAttribute("id-member", data[i][item]);
-                    b.href = "#";
+                        var b = document.createElement('a');
+                        var linkText = document.createTextNode('delete');
+                        b.appendChild(linkText);
+                        b.setAttribute("id", "member");
+                        b.setAttribute("action-name", 'delete');
+                        b.setAttribute('onclick', 'deleteMember(this);')
+                        b.setAttribute("id-member", members[i][item]);
+                        b.href = "#";
 
-                    td.appendChild(b);
-                } else {
-                    td.appendChild(document.createTextNode(data[i][item]));
+                        td.appendChild(b);
+                    } else {
+                        td.appendChild(document.createTextNode(members[i][item]));
+                    }
                 }
             });
         }
     }
 
-    async function fetchMembers() {
+    async function fetchMembers(url) {
         const response = await fetch(url);
         if (!response.ok) {
             const message = `An error has occured: ${response.status}`;
             throw new Error(message);
         }
         const members = await response.json();
-        return members;
+        return members.data;
+    }
+
+    async function fetchSingleMember(id_member) {
+        const response = await fetch(`${url}/${id_member}`);
+        if (!response.ok) {
+            const message = `An error has occured: ${response.status}`;
+            throw new Error(message);
+        }
+        const member = await response.json();
+        return member.data;
     }
 
     function loadPage() {
-        fetchMembers().then(members => {
-          tableCreate(members.data)
+        fetchMembers(url).then(members => {
+            tableCreate(members)
+            treeCreate(members)
         });
     }
 
