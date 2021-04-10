@@ -166,16 +166,18 @@
     }
 
     function setOrangTuaList() {
-        fetchMembers()
         let selectElement = document.getElementById('orang_tua_list');
 
-        for (let age = 12; age <= 100; age++) {
-          selectElement.add(new Option(age));
-        }
+        fetchMembers().then(members => {
+          members.data.map((member) => {
+            selectElement.add(new Option(member.nama, member.id));
+          });
+        });
     }
 
     function showModal(target) {
         document.getElementById("myForm").reset();
+        setOrangTuaList();
         modal.style.display = "block";
         if (target.tagName !== "BUTTON") {
             getUrlSimpan = setUrlSimpan(target.getAttribute("id-member"));
