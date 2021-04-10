@@ -75,7 +75,7 @@ class AnggotaControllerTests extends TestCase {
 	    $payload = [
 		    'nama' 			=>  $this->faker->unique()->name($gender),
 		    'jenis_kelamin'	=>  $gender,
-		    'id_orang_tua'	=>  "1"
+		    'id_orang_tua'	=>  null
 
 		];
 	    $anggota = Anggota::create($payload);
