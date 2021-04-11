@@ -18,8 +18,6 @@ class CreateAnggotaTable extends Migration
             $table->string('nama');
             $table->string('jenis_kelamin');
             $table->integer('id_orang_tua')->nullable();
-            $table->integer('tingkat')->nullable();
-            $table->timestamps();
         });
     }
 

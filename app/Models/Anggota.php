@@ -11,6 +11,8 @@ class Anggota extends Model
 
 	protected $guarded = ['id']; 
 
+    public $timestamps = false;
+
 	public function parent()
     {
         return $this->belongsTo('App\Models\Anggota', 'id_orang_tua');
