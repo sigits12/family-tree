@@ -26,3 +26,6 @@ family-tree$ php artisan serve
 | GET | api/anggota/{id} | Mendapatkan anggota berdasarkan id
 | PUT | api/anggota/{id} | Merubah anggota berdasarkan id
 | DELETE | api/anggota/{id} | Menghapus anggota berdasarkan id
+
+## UI
+Buka `localhost:8000` untuk interface CRUD
